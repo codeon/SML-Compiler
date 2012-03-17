@@ -1,0 +1,3 @@
+byacc -d parser.y
+flex try.l
+gcc y.tab.c lex.yy.c

@@ -1,0 +1,17 @@
+Language of choice: C++
+
+Compulsory:
+Type Checking
+Type Inference
+Indentifiers
+Function calls
+Recursive functions
+Arithmetic ops(Integers)
+Logical ops
+
+
+Optional:
+Records
+Float operations
+
+Next Meeting: Lexer complete, Parser start.
