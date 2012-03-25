@@ -1,14 +1,17 @@
 %{
 #include "include.h"
+#define YYDEBUG 1
 int yylex(void);
 void yerror(char *);
 %}
 %token ABSTYPE AND ANDALSO AS CASE DATATYPE DO ELSE END EXCEPTION FN FUN HANDLE IF IN INFIX INFIXR 
 %token LET LOCAL NONFIX NOT OF OP OPEN OR ORELSE RAISE REC THEN TYPE VAL WITH WITHTYPE WHILE
-%token NUMBER FLOAT BOOL VARIABLE NEWLINE
-%token NE GT LE LT GE ASSIGNMENT '=>' '->'
+%token NUMBER FLOAT BOOL VARIABLE NEWLINE CONSTANT
+%token NE GT LE LT GE ASSIGNMENT '=>' '->' INFIXOP
 %token FALSE TRUE 
 %token NUMBER
+
+%token COMPOUNDIDENT IDENT COMPOUNDNAME NAME INFIXOPERATOR CONSTANT STRINGESCAPE NUMERAL TYPEVAR IDENT LABEL ALPHANUMERICIDENT DIGIT LETTER COMMENT 
 
 %union {
 	char* value;
@@ -30,10 +33,17 @@ ToplevelDecl :
 		| ObjectDecl
 		;
 		
-ObjectDecl	:
-		Declaration  ObjectDeclR 
-		| LOCAL ObjectDecl 	IN ObjectDecl END ObjectDeclR
-		| ObjectDeclR
+ObjectDecl:
+		ObjectDecl1
+		| ObjectDecl2
+		;
+		
+ObjectDecl1:
+		Declaration  ObjectDecl2
+		;
+		
+ObjectDecl2	:
+		LOCAL ObjectDecl IN ObjectDecl END ObjectDeclR
 		;
 
 ObjectDeclR :
@@ -41,29 +51,64 @@ ObjectDeclR :
 		| ObjectDecl
 		;
 
-Declaration :
-		DeclarationR ';' Declaration
-		| DeclarationR Declaration
+Declaration: 
+		VAL REC Pattern '=' Expression PatternExprR DeclarationR
+		| VAL Pattern '=' Expression PatternExprR DeclarationR
+		| FUN FunHeadingR DeclarationR
+		| TYPE TypeBinding DeclarationR
+		| DATATYPE DatatypeB1R DeclarationR
+		| ABSTYPE  DatatypeB1R WITH Declaration1 END DeclarationR
+		| LOCAL Declaration1 IN Declaration1 END DeclarationR 
 		;
 		
-DeclarationR: 
-		VAL REC Pattern '=' Expression PatternExprR
-		| VAL Pattern '=' Expression PatternExprR
-		| FUN FunHeading ':' Type 	'=' Expression FunExprR
-		| FUN FunHeading '=' Expression FunExprR
-		| TYPE TypeBinding
-		| DATATYPE DatatypeBinding WITHTYPE TYPEBINDING
-		| DATATYPE DatatypeBinding 
-		| ABSTYPE  DatatypeBinding WITHTYPE TYPEBINDING WITH Declaration END
-		| ABSTYPE  DatatypeBinding WITH Declaration END
-		| LOCAL Declaration IN Declaration END 
-		| 
+Declaration1: 
+		VAL REC Pattern '=' Expression PatternExprR DeclarationR
+		| VAL Pattern '=' Expression PatternExprR DeclarationR
+		| FUN FunHeadingR DeclarationR
+		| TYPE TypeBinding DeclarationR
+		| DATATYPE DatatypeB1R DeclarationR
+		| ABSTYPE  DatatypeB1R WITH Declaration1 END DeclarationR
+		| LOCAL Declaration1 IN Declaration1 END DeclarationR 
+		|
+		;
+
+DeclarationR :
+		 ';' Declaration
+		| Declaration 
+		
 		;
 		
+FunHeadingR :
+		FunHeading ':' Type '=' Expression FunExprR
+		| FunHeading '=' Expression FunExprR
+		;
+		
+FunExprR :
+		'|' FunHeadingR
+		| AND FunHeadingR
+		|
+		;		
+
+DatatypeB1R	:
+		DatatypeBinding WITHTYPE TypeBinding
+		| DatatypeBinding 
+		;
+	
+PatternExprR:
+		AND VAL REC Pattern '=' Expression PatternExprR
+		|
+		;
+		
+
 FunHeading : 
-		Name AtomicPattern AtomicPatternR
-		| '(' AtomicPattern InfixOperator AtomicPattern ')' AtomicPatternR 	
-		| AtomicPattern InfixOperator AtomicPattern
+		Name AtomicPattern AtomicPatternStar
+		| '(' AtomicPattern INFIXOPERATOR AtomicPattern ')' AtomicPatternStar 	
+		| AtomicPattern INFIXOPERATOR AtomicPattern
+	
+		;
+AtomicPatternStar :
+		AtomicPattern AtomicPatternStar
+		|
 		;
 
 TypeBinding :
@@ -95,73 +140,142 @@ IdentOfTypeR :
 		;
 		
 TypeVarList : 
-		| TypeVar
-		| '(' TypeVar TypeVarR ')'
+		 TYPEVAR
+		| '(' TYPEVAR TypeVarStar ')'
 		|
 		;
 
-TypeVarR :
-		',' TypeVar
+TypeVarStar :
+		',' TypeVarStar
 		|
 		;
 
-Expression :
+Expression:
+		ExpressionY ':' Type
+		| ExpressionY  ANDALSO Expression  
+		| ExpressionY  ORELSE Expression  
+		| ExpressionY
+		;
+		
+ExpressionY :
 		InfixExpression
-		| Expression ':' Type
-		| Expression  ANDALSO Expression  
-		| Expression  ORELSE Expression  
 		| IF  Expression  THEN Expression ELSE Expression
 		| WHILE  Expression DO Expression   
 		| CASE Expression OF Expression  
 		;
 
 InfixExpression :
-		InfixExpression InfixOperator InfixExpression
-		| AtomicExpression AtomicExpressionR
+		AtomicExpressionPlus INFIXOPERATOR InfixExpression
+		| AtomicExpressionPlus
+		;
+
+AtomicExpressionPlus :
+		AtomicExpression AtomicExpressionStar
 		;
 		
-AtomicExpressionR :
-		AtomicExpression AtomicExpressionR
+AtomicExpressionStar :
+		AtomicExpression AtomicExpressionStar
 		|
 		;
 		
 AtomicExpression :
-		Constant
-		| '(' Expression ExpressionR1 ')'
-		| '(' ')' 
-		| '[' Expression ExpressionR1 ']'
+		CONSTANT
+		| '(' ')'
+		| E2 ')'
+		| E2 ';' ExpressionPlus2 ')'
+		| E2 ',' ExpressionPlus1 ')'
+		| '[' ExpressionPlus1 ']'
 		| '[' ']'
-		| '{' Label '=' Expression LabelExpressionR '}'
+		| '{' LABEL '=' Expression LabelExpressionR	'}'
 		| '{' '}' 
-		| '#' Label 
-		| '(' Expression ExpressionR2 ')' 
-		| LET Declaration IN ExpressionR2 END 
+		| '#' LABEL 
+		| LET Declaration IN ExpressionPlus2 END 
+		;
+
+E2 :
+		'(' Expression
+		;
+
+ExpressionPlus1:
+		Expression ',' ExpressionPlus1
+		| Expression
 		;
 		
-ExpressionR1 :
-		',' Expression 
+ExpressionPlus2:
+		Expression ';' ExpressionPlus2
+		| Expression
+		;
+				
+LabelExpressionR :
+		',' LABEL '=' Expression LabelExpressionR
+		|
+		;
+		
+Pattern :
+		PatternX 
+		| PatternY
+		;
+		
+PatternY:
+		PatternX INFIXOPERATOR Pattern
+		| PatternX ':' Type 
+
+PatternX:
+		AtomicPattern
+		| CompoundName AtomicPattern
+		| Name ':' Type AS Pattern
+		| Name AS Pattern
+		;
+
+AtomicPattern : 
+		'_'
+		| CompoundIdent
+		| CONSTANT
+		| '(' Patterns ')'
+		| '[' Patterns ']'
+		;
+		
+Patterns :
+		Pattern PatternR
+		| 
+		;
+
+PatternR : 
+		',' Pattern PatternR
 		| 
 		;
 		
-ExpressionR1 :
-		';' Expression 
-		| 
-		;		
 		
 Type: 
-		TypeVar
-		| SubType CompoundIndent
-		| Type '*' Type SubTypeR
-		| Type '->' Type 
-		| '{' Label ':' Type LabelTypeR '}'
+		TypeX
+		| TypeY
+		;
+		
+TypeX:
+		TypeY CompoundIdent
+		| TypeY '*' Type SubTypeR
+		| TypeY '->' Type 
+		;
+		
+TypeY:
+		TYPEVAR
+		| CompoundIdent
+		| SubType CompoundIdent
+		| '{' LABEL ':' Type LabelTypeR '}'
 		| '{' '}'
-		| '(' Type ')'
+		| SingleType
+		;
+		
+SingleType:
+		A ')'
+		;
+		
+A:
+		'(' Type 
 		;
 		
 SubType :
-		| Type 
-		| '(' Type SType ')'
-		|
+		A ',' Type SType ')'
 		;
 		
 SubTypeR : 
@@ -175,34 +289,39 @@ SType :
 		;
 
 LabelTypeR :
-		',' Label ':' Type LabelTypeR
+		',' LABEL ':' Type LabelTypeR
 		| 
 		;
 		
-CompoundIndent :
-		Ident IdentR
+CompoundName : 
+		IdentPlus
+		| Name
+		| Ident
+		;
 		
-IdentR :
-		'.' Ident 
+Name : 
+		Ident
+		| OP INFIXOPERATOR
+		;
+
+CompoundIdent : 
+		Ident 
+		| IdentPlus
+		;
+
+IdentPlus:
+		Ident '.' Ident IdentStar
+		;
+
+IdentStar:
+		'.' Ident IdentStar
 		|
 		;
 
-CompoundName :
-		CompoundIndent
-		| OP InfixOperator
+Ident : 
+		ALPHANUMERICIDENT
 		;
 		
-Name :
-		Ident
-		| OP InfixOperator
-		;
-	
-expr :	
-	expr airth_opr expr 		//printf("got Number \n");}
-	| NUMBER		//printf("Root %s\n", $1.value);}
-	| VARIABLE		//printf("Root %s\n", $1.value);}
-	;
-airth_opr : '*'|'-'|'+'|'/'|'^';
 %%
 
 void yyerror(char *str)

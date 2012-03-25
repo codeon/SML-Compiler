@@ -37,23 +37,31 @@
 #define BOOL 293
 #define VARIABLE 294
 #define NEWLINE 295
-#define NE 296
-#define GT 297
-#define LE 298
-#define LT 299
-#define GE 300
-#define ASSIGNMENT 301
-#define FALSE 302
-#define TRUE 303
-#ifdef YYSTYPE
-#undef  YYSTYPE_IS_DECLARED
-#define YYSTYPE_IS_DECLARED 1
-#endif
-#ifndef YYSTYPE_IS_DECLARED
-#define YYSTYPE_IS_DECLARED 1
+#define CONSTANT 296
+#define NE 297
+#define GT 298
+#define LE 299
+#define LT 300
+#define GE 301
+#define ASSIGNMENT 302
+#define INFIXOP 305
+#define FALSE 306
+#define TRUE 307
+#define COMPOUNDIDENT 308
+#define IDENT 309
+#define COMPOUNDNAME 310
+#define NAME 311
+#define INFIXOPERATOR 312
+#define STRINGESCAPE 313
+#define NUMERAL 314
+#define TYPEVAR 315
+#define LABEL 316
+#define ALPHANUMERICIDENT 317
+#define DIGIT 318
+#define LETTER 319
+#define COMMENT 320
 typedef union {
 	char* value;
 	TokenType tokentype; 
 } YYSTYPE;
-#endif /* !YYSTYPE_IS_DECLARED */
 extern YYSTYPE yylval;

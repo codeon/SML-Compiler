@@ -1,0 +1,4478 @@
+   0  $accept : program $end
+
+   1  program : ToplevelDecl ';' programR
+
+   2  programR : program
+   3           |
+
+   4  ToplevelDecl : Expression
+   5               | ObjectDecl
+
+   6  ObjectDecl : ObjectDecl1
+   7             | ObjectDecl2
+
+   8  ObjectDecl1 : Declaration ObjectDecl2
+
+   9  ObjectDecl2 : LOCAL ObjectDecl IN ObjectDecl END ObjectDeclR
+
+  10  ObjectDeclR : ';' ObjectDecl
+  11              | ObjectDecl
+
+  12  Declaration : VAL REC Pattern '=' Expression PatternExprR DeclarationR
+  13              | VAL Pattern '=' Expression PatternExprR DeclarationR
+  14              | FUN FunHeadingR DeclarationR
+  15              | TYPE TypeBinding DeclarationR
+  16              | DATATYPE DatatypeB1R DeclarationR
+  17              | ABSTYPE DatatypeB1R WITH Declaration1 END DeclarationR
+  18              | LOCAL Declaration1 IN Declaration1 END DeclarationR
+
+  19  Declaration1 : VAL REC Pattern '=' Expression PatternExprR DeclarationR
+  20               | VAL Pattern '=' Expression PatternExprR DeclarationR
+  21               | FUN FunHeadingR DeclarationR
+  22               | TYPE TypeBinding DeclarationR
+  23               | DATATYPE DatatypeB1R DeclarationR
+  24               | ABSTYPE DatatypeB1R WITH Declaration1 END DeclarationR
+  25               | LOCAL Declaration1 IN Declaration1 END DeclarationR
+  26               |
+
+  27  DeclarationR : ';' Declaration
+  28               | Declaration
+
+  29  FunHeadingR : FunHeading ':' Type '=' Expression FunExprR
+  30              | FunHeading '=' Expression FunExprR
+
+  31  FunExprR : '|' FunHeadingR
+  32           | AND FunHeadingR
+  33           |
+
+  34  DatatypeB1R : DatatypeBinding WITHTYPE TypeBinding
+  35              | DatatypeBinding
+
+  36  PatternExprR : AND VAL REC Pattern '=' Expression PatternExprR
+  37               |
+
+  38  FunHeading : Name AtomicPattern AtomicPatternStar
+  39             | '(' AtomicPattern INFIXOPERATOR AtomicPattern ')' AtomicPatternStar
+  40             | AtomicPattern INFIXOPERATOR AtomicPattern
+
+  41  AtomicPatternStar : AtomicPattern AtomicPatternStar
+  42                    |
+
+  43  TypeBinding : TypeVarList Ident '=' Type TypeBindingR
+
+  44  TypeBindingR : AND TypeBinding
+  45               |
+
+  46  DatatypeBinding : TypeVarList Ident '=' IdentOfType DatatypeBindingR
+
+  47  DatatypeBindingR : AND DatatypeBinding
+  48                   |
+
+  49  IdentOfType : Ident OF Type IdentOfTypeR
+  50              | Ident IdentOfTypeR
+
+  51  IdentOfTypeR : '|' IdentOfType
+  52               |
+
+  53  TypeVarList : TYPEVAR
+  54              | '(' TYPEVAR TypeVarStar ')'
+  55              |
+
+  56  TypeVarStar : ',' TypeVarStar
+  57              |
+
+  58  Expression : ExpressionY ':' Type
+  59             | ExpressionY ANDALSO Expression
+  60             | ExpressionY ORELSE Expression
+  61             | ExpressionY
+
+  62  ExpressionY : InfixExpression
+  63              | IF Expression THEN Expression ELSE Expression
+  64              | WHILE Expression DO Expression
+  65              | CASE Expression OF Expression
+
+  66  InfixExpression : AtomicExpressionPlus INFIXOPERATOR InfixExpression
+  67                  | AtomicExpressionPlus
+
+  68  AtomicExpressionPlus : AtomicExpression AtomicExpressionStar
+
+  69  AtomicExpressionStar : AtomicExpression AtomicExpressionStar
+  70                       |
+
+  71  AtomicExpression : CONSTANT
+  72                   | '(' ')'
+  73                   | E2 ')'
+  74                   | E2 ';' ExpressionPlus2 ')'
+  75                   | E2 ',' ExpressionPlus1 ')'
+  76                   | '[' ExpressionPlus1 ']'
+  77                   | '[' ']'
+  78                   | '{' LABEL '=' Expression LabelExpressionR '}'
+  79                   | '{' '}'
+  80                   | '#' LABEL
+  81                   | LET Declaration IN ExpressionPlus2 END
+
+  82  E2 : '(' Expression
+
+  83  ExpressionPlus1 : Expression ',' ExpressionPlus1
+  84                  | Expression
+
+  85  ExpressionPlus2 : Expression ';' ExpressionPlus2
+  86                  | Expression
+
+  87  LabelExpressionR : ',' LABEL '=' Expression LabelExpressionR
+  88                   |
+
+  89  Pattern : PatternX
+  90          | PatternY
+
+  91  PatternY : PatternX INFIXOPERATOR Pattern
+  92           | PatternX ':' Type
+
+  93  PatternX : AtomicPattern
+  94           | CompoundName AtomicPattern
+  95           | Name ':' Type AS Pattern
+  96           | Name AS Pattern
+
+  97  AtomicPattern : '_'
+  98                | CompoundIdent
+  99                | CONSTANT
+ 100                | '(' Patterns ')'
+ 101                | '[' Patterns ']'
+
+ 102  Patterns : Pattern PatternR
+ 103           |
+
+ 104  PatternR : ',' Pattern PatternR
+ 105           |
+
+ 106  Type : TypeX
+ 107       | TypeY
+
+ 108  TypeX : TypeY CompoundIdent
+ 109        | TypeY '*' Type SubTypeR
+ 110        | TypeY "->" Type
+
+ 111  TypeY : TYPEVAR
+ 112        | CompoundIdent
+ 113        | SubType CompoundIdent
+ 114        | '{' LABEL ':' Type LabelTypeR '}'
+ 115        | '{' '}'
+ 116        | SingleType
+
+ 117  SingleType : A ')'
+
+ 118  A : '(' Type
+
+ 119  SubType : A ',' Type SType ')'
+
+ 120  SubTypeR : '*' Type
+ 121           |
+
+ 122  SType : ',' Type SType
+ 123        |
+
+ 124  LabelTypeR : ',' LABEL ':' Type LabelTypeR
+ 125             |
+
+ 126  CompoundName : IdentPlus
+ 127               | Name
+ 128               | Ident
+
+ 129  Name : Ident
+ 130       | OP INFIXOPERATOR
+
+ 131  CompoundIdent : Ident
+ 132                | IdentPlus
+
+ 133  IdentPlus : Ident '.' Ident IdentStar
+
+ 134  IdentStar : '.' Ident IdentStar
+ 135            |
+
+ 136  Ident : ALPHANUMERICIDENT
+
+state 0
+	$accept : . program $end  (0)
+
+	ABSTYPE  shift 1
+	CASE  shift 2
+	DATATYPE  shift 3
+	FUN  shift 4
+	IF  shift 5
+	LET  shift 6
+	LOCAL  shift 7
+	TYPE  shift 8
+	VAL  shift 9
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	program  goto 16
+	ToplevelDecl  goto 17
+	Expression  goto 18
+	ObjectDecl  goto 19
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 1
+	Declaration : ABSTYPE . DatatypeB1R WITH Declaration1 END DeclarationR  (17)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeB1R  goto 30
+	DatatypeBinding  goto 31
+	TypeVarList  goto 32
+
+
+state 2
+	ExpressionY : CASE . Expression OF Expression  (65)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 33
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 3
+	Declaration : DATATYPE . DatatypeB1R DeclarationR  (16)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeB1R  goto 34
+	DatatypeBinding  goto 31
+	TypeVarList  goto 32
+
+
+state 4
+	Declaration : FUN . FunHeadingR DeclarationR  (14)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 38
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	FunHeadingR  goto 41
+	FunHeading  goto 42
+	Name  goto 43
+	AtomicPattern  goto 44
+	Ident  goto 45
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 5
+	ExpressionY : IF . Expression THEN Expression ELSE Expression  (63)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 48
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 6
+	AtomicExpression : LET . Declaration IN ExpressionPlus2 END  (81)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	.  error
+
+	Declaration  goto 50
+
+
+state 7
+	ObjectDecl2 : LOCAL . ObjectDecl IN ObjectDecl END ObjectDeclR  (9)
+	Declaration : LOCAL . Declaration1 IN Declaration1 END DeclarationR  (18)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 51
+	DATATYPE  shift 52
+	FUN  shift 53
+	LOCAL  shift 54
+	TYPE  shift 55
+	VAL  shift 56
+	IN  reduce 26
+
+	ObjectDecl  goto 57
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+	Declaration1  goto 58
+
+
+state 8
+	Declaration : TYPE . TypeBinding DeclarationR  (15)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	TypeBinding  goto 59
+	TypeVarList  goto 60
+
+
+state 9
+	Declaration : VAL . REC Pattern '=' Expression PatternExprR DeclarationR  (12)
+	Declaration : VAL . Pattern '=' Expression PatternExprR DeclarationR  (13)
+
+	OP  shift 35
+	REC  shift 61
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 63
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 10
+	ExpressionY : WHILE . Expression DO Expression  (64)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 71
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 11
+	AtomicExpression : CONSTANT .  (71)
+
+	.  reduce 71
+
+
+state 12
+	AtomicExpression : '(' . ')'  (72)
+	E2 : '(' . Expression  (82)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	')'  shift 72
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 73
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 13
+	AtomicExpression : '[' . ExpressionPlus1 ']'  (76)
+	AtomicExpression : '[' . ']'  (77)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	']'  shift 74
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 75
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+	ExpressionPlus1  goto 76
+
+
+state 14
+	AtomicExpression : '{' . LABEL '=' Expression LabelExpressionR '}'  (78)
+	AtomicExpression : '{' . '}'  (79)
+
+	LABEL  shift 77
+	'}'  shift 78
+	.  error
+
+
+state 15
+	AtomicExpression : '#' . LABEL  (80)
+
+	LABEL  shift 79
+	.  error
+
+
+state 16
+	$accept : program . $end  (0)
+
+	$end  accept
+
+
+state 17
+	program : ToplevelDecl . ';' programR  (1)
+
+	';'  shift 80
+	.  error
+
+
+state 18
+	ToplevelDecl : Expression .  (4)
+
+	.  reduce 4
+
+
+state 19
+	ToplevelDecl : ObjectDecl .  (5)
+
+	.  reduce 5
+
+
+state 20
+	ObjectDecl : ObjectDecl1 .  (6)
+
+	.  reduce 6
+
+
+state 21
+	ObjectDecl : ObjectDecl2 .  (7)
+
+	.  reduce 7
+
+
+state 22
+	ObjectDecl1 : Declaration . ObjectDecl2  (8)
+
+	LOCAL  shift 81
+	.  error
+
+	ObjectDecl2  goto 82
+
+
+23: shift/reduce conflict (shift 83, reduce 61) on ANDALSO
+23: shift/reduce conflict (shift 84, reduce 61) on ORELSE
+23: shift/reduce conflict (shift 85, reduce 61) on ':'
+state 23
+	Expression : ExpressionY . ':' Type  (58)
+	Expression : ExpressionY . ANDALSO Expression  (59)
+	Expression : ExpressionY . ORELSE Expression  (60)
+	Expression : ExpressionY .  (61)
+
+	ANDALSO  shift 83
+	ORELSE  shift 84
+	':'  shift 85
+	ABSTYPE  reduce 61
+	AND  reduce 61
+	DATATYPE  reduce 61
+	DO  reduce 61
+	ELSE  reduce 61
+	END  reduce 61
+	FUN  reduce 61
+	LOCAL  reduce 61
+	OF  reduce 61
+	THEN  reduce 61
+	TYPE  reduce 61
+	VAL  reduce 61
+	';'  reduce 61
+	'|'  reduce 61
+	')'  reduce 61
+	','  reduce 61
+	']'  reduce 61
+	'}'  reduce 61
+
+
+state 24
+	ExpressionY : InfixExpression .  (62)
+
+	.  reduce 62
+
+
+state 25
+	InfixExpression : AtomicExpressionPlus . INFIXOPERATOR InfixExpression  (66)
+	InfixExpression : AtomicExpressionPlus .  (67)
+
+	INFIXOPERATOR  shift 86
+	ABSTYPE  reduce 67
+	AND  reduce 67
+	ANDALSO  reduce 67
+	DATATYPE  reduce 67
+	DO  reduce 67
+	ELSE  reduce 67
+	END  reduce 67
+	FUN  reduce 67
+	LOCAL  reduce 67
+	OF  reduce 67
+	ORELSE  reduce 67
+	THEN  reduce 67
+	TYPE  reduce 67
+	VAL  reduce 67
+	';'  reduce 67
+	':'  reduce 67
+	'|'  reduce 67
+	')'  reduce 67
+	','  reduce 67
+	']'  reduce 67
+	'}'  reduce 67
+
+
+state 26
+	AtomicExpressionPlus : AtomicExpression . AtomicExpressionStar  (68)
+	AtomicExpressionStar : .  (70)
+
+	LET  shift 6
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	ABSTYPE  reduce 70
+	AND  reduce 70
+	ANDALSO  reduce 70
+	DATATYPE  reduce 70
+	DO  reduce 70
+	ELSE  reduce 70
+	END  reduce 70
+	FUN  reduce 70
+	LOCAL  reduce 70
+	OF  reduce 70
+	ORELSE  reduce 70
+	THEN  reduce 70
+	TYPE  reduce 70
+	VAL  reduce 70
+	INFIXOPERATOR  reduce 70
+	';'  reduce 70
+	':'  reduce 70
+	'|'  reduce 70
+	')'  reduce 70
+	','  reduce 70
+	']'  reduce 70
+	'}'  reduce 70
+
+	AtomicExpression  goto 87
+	AtomicExpressionStar  goto 88
+	E2  goto 27
+
+
+state 27
+	AtomicExpression : E2 . ')'  (73)
+	AtomicExpression : E2 . ';' ExpressionPlus2 ')'  (74)
+	AtomicExpression : E2 . ',' ExpressionPlus1 ')'  (75)
+
+	';'  shift 89
+	')'  shift 90
+	','  shift 91
+	.  error
+
+
+state 28
+	TypeVarList : TYPEVAR .  (53)
+
+	.  reduce 53
+
+
+state 29
+	TypeVarList : '(' . TYPEVAR TypeVarStar ')'  (54)
+
+	TYPEVAR  shift 92
+	.  error
+
+
+state 30
+	Declaration : ABSTYPE DatatypeB1R . WITH Declaration1 END DeclarationR  (17)
+
+	WITH  shift 93
+	.  error
+
+
+state 31
+	DatatypeB1R : DatatypeBinding . WITHTYPE TypeBinding  (34)
+	DatatypeB1R : DatatypeBinding .  (35)
+
+	WITHTYPE  shift 94
+	ABSTYPE  reduce 35
+	DATATYPE  reduce 35
+	FUN  reduce 35
+	LOCAL  reduce 35
+	TYPE  reduce 35
+	VAL  reduce 35
+	WITH  reduce 35
+	';'  reduce 35
+
+
+state 32
+	DatatypeBinding : TypeVarList . Ident '=' IdentOfType DatatypeBindingR  (46)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 95
+
+
+state 33
+	ExpressionY : CASE Expression . OF Expression  (65)
+
+	OF  shift 96
+	.  error
+
+
+state 34
+	Declaration : DATATYPE DatatypeB1R . DeclarationR  (16)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 99
+
+
+state 35
+	Name : OP . INFIXOPERATOR  (130)
+
+	INFIXOPERATOR  shift 100
+	.  error
+
+
+state 36
+	AtomicPattern : CONSTANT .  (99)
+
+	.  reduce 99
+
+
+state 37
+	Ident : ALPHANUMERICIDENT .  (136)
+
+	.  reduce 136
+
+
+state 38
+	FunHeading : '(' . AtomicPattern INFIXOPERATOR AtomicPattern ')' AtomicPatternStar  (39)
+	AtomicPattern : '(' . Patterns ')'  (100)
+	Patterns : .  (103)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	')'  reduce 103
+
+	Pattern  goto 101
+	Name  goto 64
+	AtomicPattern  goto 102
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	Patterns  goto 103
+	IdentPlus  goto 70
+
+
+state 39
+	AtomicPattern : '[' . Patterns ']'  (101)
+	Patterns : .  (103)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	']'  reduce 103
+
+	Pattern  goto 101
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	Patterns  goto 104
+	IdentPlus  goto 70
+
+
+state 40
+	AtomicPattern : '_' .  (97)
+
+	.  reduce 97
+
+
+state 41
+	Declaration : FUN FunHeadingR . DeclarationR  (14)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 105
+
+
+state 42
+	FunHeadingR : FunHeading . ':' Type '=' Expression FunExprR  (29)
+	FunHeadingR : FunHeading . '=' Expression FunExprR  (30)
+
+	'='  shift 106
+	':'  shift 107
+	.  error
+
+
+state 43
+	FunHeading : Name . AtomicPattern AtomicPatternStar  (38)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	AtomicPattern  goto 108
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 44
+	FunHeading : AtomicPattern . INFIXOPERATOR AtomicPattern  (40)
+
+	INFIXOPERATOR  shift 110
+	.  error
+
+
+state 45
+	Name : Ident .  (129)
+	CompoundIdent : Ident .  (131)
+	IdentPlus : Ident . '.' Ident IdentStar  (133)
+
+	'.'  shift 111
+	CONSTANT  reduce 129
+	INFIXOPERATOR  reduce 131
+	ALPHANUMERICIDENT  reduce 129
+	'('  reduce 129
+	'['  reduce 129
+	'_'  reduce 129
+
+
+state 46
+	AtomicPattern : CompoundIdent .  (98)
+
+	.  reduce 98
+
+
+state 47
+	CompoundIdent : IdentPlus .  (132)
+
+	.  reduce 132
+
+
+state 48
+	ExpressionY : IF Expression . THEN Expression ELSE Expression  (63)
+
+	THEN  shift 112
+	.  error
+
+
+state 49
+	Declaration : LOCAL . Declaration1 IN Declaration1 END DeclarationR  (18)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	IN  reduce 26
+
+	Declaration1  goto 58
+
+
+state 50
+	AtomicExpression : LET Declaration . IN ExpressionPlus2 END  (81)
+
+	IN  shift 119
+	.  error
+
+
+state 51
+	Declaration : ABSTYPE . DatatypeB1R WITH Declaration1 END DeclarationR  (17)
+	Declaration1 : ABSTYPE . DatatypeB1R WITH Declaration1 END DeclarationR  (24)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeB1R  goto 120
+	DatatypeBinding  goto 31
+	TypeVarList  goto 32
+
+
+state 52
+	Declaration : DATATYPE . DatatypeB1R DeclarationR  (16)
+	Declaration1 : DATATYPE . DatatypeB1R DeclarationR  (23)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeB1R  goto 121
+	DatatypeBinding  goto 31
+	TypeVarList  goto 32
+
+
+state 53
+	Declaration : FUN . FunHeadingR DeclarationR  (14)
+	Declaration1 : FUN . FunHeadingR DeclarationR  (21)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 38
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	FunHeadingR  goto 122
+	FunHeading  goto 42
+	Name  goto 43
+	AtomicPattern  goto 44
+	Ident  goto 45
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 54
+	ObjectDecl2 : LOCAL . ObjectDecl IN ObjectDecl END ObjectDeclR  (9)
+	Declaration : LOCAL . Declaration1 IN Declaration1 END DeclarationR  (18)
+	Declaration1 : LOCAL . Declaration1 IN Declaration1 END DeclarationR  (25)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 51
+	DATATYPE  shift 52
+	FUN  shift 53
+	LOCAL  shift 54
+	TYPE  shift 55
+	VAL  shift 56
+	IN  reduce 26
+
+	ObjectDecl  goto 57
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+	Declaration1  goto 123
+
+
+state 55
+	Declaration : TYPE . TypeBinding DeclarationR  (15)
+	Declaration1 : TYPE . TypeBinding DeclarationR  (22)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	TypeBinding  goto 124
+	TypeVarList  goto 60
+
+
+state 56
+	Declaration : VAL . REC Pattern '=' Expression PatternExprR DeclarationR  (12)
+	Declaration : VAL . Pattern '=' Expression PatternExprR DeclarationR  (13)
+	Declaration1 : VAL . REC Pattern '=' Expression PatternExprR DeclarationR  (19)
+	Declaration1 : VAL . Pattern '=' Expression PatternExprR DeclarationR  (20)
+
+	OP  shift 35
+	REC  shift 125
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 126
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 57
+	ObjectDecl2 : LOCAL ObjectDecl . IN ObjectDecl END ObjectDeclR  (9)
+
+	IN  shift 127
+	.  error
+
+
+state 58
+	Declaration : LOCAL Declaration1 . IN Declaration1 END DeclarationR  (18)
+
+	IN  shift 128
+	.  error
+
+
+state 59
+	Declaration : TYPE TypeBinding . DeclarationR  (15)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 129
+
+
+state 60
+	TypeBinding : TypeVarList . Ident '=' Type TypeBindingR  (43)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 130
+
+
+state 61
+	Declaration : VAL REC . Pattern '=' Expression PatternExprR DeclarationR  (12)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 131
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 62
+	AtomicPattern : '(' . Patterns ')'  (100)
+	Patterns : .  (103)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	')'  reduce 103
+
+	Pattern  goto 101
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	Patterns  goto 103
+	IdentPlus  goto 70
+
+
+state 63
+	Declaration : VAL Pattern . '=' Expression PatternExprR DeclarationR  (13)
+
+	'='  shift 132
+	.  error
+
+
+state 64
+	PatternX : Name . ':' Type AS Pattern  (95)
+	PatternX : Name . AS Pattern  (96)
+	CompoundName : Name .  (127)
+
+	AS  shift 133
+	':'  shift 134
+	CONSTANT  reduce 127
+	ALPHANUMERICIDENT  reduce 127
+	'('  reduce 127
+	'['  reduce 127
+	'_'  reduce 127
+
+
+state 65
+	PatternX : AtomicPattern .  (93)
+
+	.  reduce 93
+
+
+66: reduce/reduce conflict (reduce 128, reduce 129) on CONSTANT
+66: reduce/reduce conflict (reduce 128, reduce 129) on ALPHANUMERICIDENT
+66: reduce/reduce conflict (reduce 129, reduce 131) on ':'
+66: reduce/reduce conflict (reduce 128, reduce 129) on '('
+66: reduce/reduce conflict (reduce 128, reduce 129) on '['
+66: reduce/reduce conflict (reduce 128, reduce 129) on '_'
+state 66
+	CompoundName : Ident .  (128)
+	Name : Ident .  (129)
+	CompoundIdent : Ident .  (131)
+	IdentPlus : Ident . '.' Ident IdentStar  (133)
+
+	'.'  shift 111
+	AS  reduce 129
+	CONSTANT  reduce 128
+	INFIXOPERATOR  reduce 131
+	ALPHANUMERICIDENT  reduce 128
+	'='  reduce 131
+	':'  reduce 129
+	'('  reduce 128
+	')'  reduce 131
+	','  reduce 131
+	'['  reduce 128
+	']'  reduce 131
+	'_'  reduce 128
+
+
+67: shift/reduce conflict (shift 135, reduce 89) on INFIXOPERATOR
+67: shift/reduce conflict (shift 136, reduce 89) on ':'
+state 67
+	Pattern : PatternX .  (89)
+	PatternY : PatternX . INFIXOPERATOR Pattern  (91)
+	PatternY : PatternX . ':' Type  (92)
+
+	INFIXOPERATOR  shift 135
+	':'  shift 136
+	'='  reduce 89
+	')'  reduce 89
+	','  reduce 89
+	']'  reduce 89
+
+
+state 68
+	Pattern : PatternY .  (90)
+
+	.  reduce 90
+
+
+state 69
+	PatternX : CompoundName . AtomicPattern  (94)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	AtomicPattern  goto 137
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 70
+	CompoundName : IdentPlus .  (126)
+	CompoundIdent : IdentPlus .  (132)
+
+	CONSTANT  reduce 126
+	INFIXOPERATOR  reduce 132
+	ALPHANUMERICIDENT  reduce 126
+	'='  reduce 132
+	':'  reduce 132
+	'('  reduce 126
+	')'  reduce 132
+	','  reduce 132
+	'['  reduce 126
+	']'  reduce 132
+	'_'  reduce 126
+
+
+state 71
+	ExpressionY : WHILE Expression . DO Expression  (64)
+
+	DO  shift 138
+	.  error
+
+
+state 72
+	AtomicExpression : '(' ')' .  (72)
+
+	.  reduce 72
+
+
+state 73
+	E2 : '(' Expression .  (82)
+
+	.  reduce 82
+
+
+state 74
+	AtomicExpression : '[' ']' .  (77)
+
+	.  reduce 77
+
+
+state 75
+	ExpressionPlus1 : Expression . ',' ExpressionPlus1  (83)
+	ExpressionPlus1 : Expression .  (84)
+
+	','  shift 139
+	')'  reduce 84
+	']'  reduce 84
+
+
+state 76
+	AtomicExpression : '[' ExpressionPlus1 . ']'  (76)
+
+	']'  shift 140
+	.  error
+
+
+state 77
+	AtomicExpression : '{' LABEL . '=' Expression LabelExpressionR '}'  (78)
+
+	'='  shift 141
+	.  error
+
+
+state 78
+	AtomicExpression : '{' '}' .  (79)
+
+	.  reduce 79
+
+
+state 79
+	AtomicExpression : '#' LABEL .  (80)
+
+	.  reduce 80
+
+
+state 80
+	program : ToplevelDecl ';' . programR  (1)
+	programR : .  (3)
+
+	ABSTYPE  shift 1
+	CASE  shift 2
+	DATATYPE  shift 3
+	FUN  shift 4
+	IF  shift 5
+	LET  shift 6
+	LOCAL  shift 7
+	TYPE  shift 8
+	VAL  shift 9
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	$end  reduce 3
+
+	program  goto 142
+	ToplevelDecl  goto 17
+	programR  goto 143
+	Expression  goto 18
+	ObjectDecl  goto 19
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 81
+	ObjectDecl2 : LOCAL . ObjectDecl IN ObjectDecl END ObjectDeclR  (9)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 7
+	TYPE  shift 8
+	VAL  shift 9
+	.  error
+
+	ObjectDecl  goto 57
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+
+
+state 82
+	ObjectDecl1 : Declaration ObjectDecl2 .  (8)
+
+	.  reduce 8
+
+
+state 83
+	Expression : ExpressionY ANDALSO . Expression  (59)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 144
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 84
+	Expression : ExpressionY ORELSE . Expression  (60)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 145
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 85
+	Expression : ExpressionY ':' . Type  (58)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 149
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 86
+	InfixExpression : AtomicExpressionPlus INFIXOPERATOR . InfixExpression  (66)
+
+	LET  shift 6
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	InfixExpression  goto 156
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 87
+	AtomicExpressionStar : AtomicExpression . AtomicExpressionStar  (69)
+	AtomicExpressionStar : .  (70)
+
+	LET  shift 6
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	ABSTYPE  reduce 70
+	AND  reduce 70
+	ANDALSO  reduce 70
+	DATATYPE  reduce 70
+	DO  reduce 70
+	ELSE  reduce 70
+	END  reduce 70
+	FUN  reduce 70
+	LOCAL  reduce 70
+	OF  reduce 70
+	ORELSE  reduce 70
+	THEN  reduce 70
+	TYPE  reduce 70
+	VAL  reduce 70
+	INFIXOPERATOR  reduce 70
+	';'  reduce 70
+	':'  reduce 70
+	'|'  reduce 70
+	')'  reduce 70
+	','  reduce 70
+	']'  reduce 70
+	'}'  reduce 70
+
+	AtomicExpression  goto 87
+	AtomicExpressionStar  goto 157
+	E2  goto 27
+
+
+state 88
+	AtomicExpressionPlus : AtomicExpression AtomicExpressionStar .  (68)
+
+	.  reduce 68
+
+
+state 89
+	AtomicExpression : E2 ';' . ExpressionPlus2 ')'  (74)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 158
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+	ExpressionPlus2  goto 159
+
+
+state 90
+	AtomicExpression : E2 ')' .  (73)
+
+	.  reduce 73
+
+
+state 91
+	AtomicExpression : E2 ',' . ExpressionPlus1 ')'  (75)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 75
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+	ExpressionPlus1  goto 160
+
+
+state 92
+	TypeVarList : '(' TYPEVAR . TypeVarStar ')'  (54)
+	TypeVarStar : .  (57)
+
+	','  shift 161
+	')'  reduce 57
+
+	TypeVarStar  goto 162
+
+
+state 93
+	Declaration : ABSTYPE DatatypeB1R WITH . Declaration1 END DeclarationR  (17)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	END  reduce 26
+
+	Declaration1  goto 163
+
+
+state 94
+	DatatypeB1R : DatatypeBinding WITHTYPE . TypeBinding  (34)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	TypeBinding  goto 164
+	TypeVarList  goto 60
+
+
+state 95
+	DatatypeBinding : TypeVarList Ident . '=' IdentOfType DatatypeBindingR  (46)
+
+	'='  shift 165
+	.  error
+
+
+state 96
+	ExpressionY : CASE Expression OF . Expression  (65)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 166
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 97
+	DeclarationR : ';' . Declaration  (27)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	.  error
+
+	Declaration  goto 167
+
+
+state 98
+	DeclarationR : Declaration .  (28)
+
+	.  reduce 28
+
+
+state 99
+	Declaration : DATATYPE DatatypeB1R DeclarationR .  (16)
+
+	.  reduce 16
+
+
+state 100
+	Name : OP INFIXOPERATOR .  (130)
+
+	.  reduce 130
+
+
+state 101
+	Patterns : Pattern . PatternR  (102)
+	PatternR : .  (105)
+
+	','  shift 168
+	')'  reduce 105
+	']'  reduce 105
+
+	PatternR  goto 169
+
+
+102: shift/reduce conflict (shift 170, reduce 93) on INFIXOPERATOR
+state 102
+	FunHeading : '(' AtomicPattern . INFIXOPERATOR AtomicPattern ')' AtomicPatternStar  (39)
+	PatternX : AtomicPattern .  (93)
+
+	INFIXOPERATOR  shift 170
+	':'  reduce 93
+	')'  reduce 93
+	','  reduce 93
+
+
+state 103
+	AtomicPattern : '(' Patterns . ')'  (100)
+
+	')'  shift 171
+	.  error
+
+
+state 104
+	AtomicPattern : '[' Patterns . ']'  (101)
+
+	']'  shift 172
+	.  error
+
+
+state 105
+	Declaration : FUN FunHeadingR DeclarationR .  (14)
+
+	.  reduce 14
+
+
+state 106
+	FunHeadingR : FunHeading '=' . Expression FunExprR  (30)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 173
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 107
+	FunHeadingR : FunHeading ':' . Type '=' Expression FunExprR  (29)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 174
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 108
+	FunHeading : Name AtomicPattern . AtomicPatternStar  (38)
+	AtomicPatternStar : .  (42)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	'='  reduce 42
+	':'  reduce 42
+
+	AtomicPattern  goto 175
+	AtomicPatternStar  goto 176
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 109
+	CompoundIdent : Ident .  (131)
+	IdentPlus : Ident . '.' Ident IdentStar  (133)
+
+	'.'  shift 111
+	ABSTYPE  reduce 131
+	AND  reduce 131
+	ANDALSO  reduce 131
+	AS  reduce 131
+	DATATYPE  reduce 131
+	DO  reduce 131
+	ELSE  reduce 131
+	END  reduce 131
+	FUN  reduce 131
+	LOCAL  reduce 131
+	OF  reduce 131
+	ORELSE  reduce 131
+	THEN  reduce 131
+	TYPE  reduce 131
+	VAL  reduce 131
+	WITH  reduce 131
+	WITHTYPE  reduce 131
+	CONSTANT  reduce 131
+	"->"  reduce 131
+	INFIXOPERATOR  reduce 131
+	ALPHANUMERICIDENT  reduce 131
+	';'  reduce 131
+	'='  reduce 131
+	':'  reduce 131
+	'|'  reduce 131
+	'('  reduce 131
+	')'  reduce 131
+	','  reduce 131
+	'['  reduce 131
+	']'  reduce 131
+	'}'  reduce 131
+	'_'  reduce 131
+	'*'  reduce 131
+
+
+state 110
+	FunHeading : AtomicPattern INFIXOPERATOR . AtomicPattern  (40)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	AtomicPattern  goto 177
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 111
+	IdentPlus : Ident '.' . Ident IdentStar  (133)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 178
+
+
+state 112
+	ExpressionY : IF Expression THEN . Expression ELSE Expression  (63)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 179
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 113
+	Declaration1 : ABSTYPE . DatatypeB1R WITH Declaration1 END DeclarationR  (24)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeB1R  goto 180
+	DatatypeBinding  goto 31
+	TypeVarList  goto 32
+
+
+state 114
+	Declaration1 : DATATYPE . DatatypeB1R DeclarationR  (23)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeB1R  goto 181
+	DatatypeBinding  goto 31
+	TypeVarList  goto 32
+
+
+state 115
+	Declaration1 : FUN . FunHeadingR DeclarationR  (21)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 38
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	FunHeadingR  goto 182
+	FunHeading  goto 42
+	Name  goto 43
+	AtomicPattern  goto 44
+	Ident  goto 45
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 116
+	Declaration1 : LOCAL . Declaration1 IN Declaration1 END DeclarationR  (25)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	IN  reduce 26
+
+	Declaration1  goto 183
+
+
+state 117
+	Declaration1 : TYPE . TypeBinding DeclarationR  (22)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	TypeBinding  goto 184
+	TypeVarList  goto 60
+
+
+state 118
+	Declaration1 : VAL . REC Pattern '=' Expression PatternExprR DeclarationR  (19)
+	Declaration1 : VAL . Pattern '=' Expression PatternExprR DeclarationR  (20)
+
+	OP  shift 35
+	REC  shift 185
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 186
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 119
+	AtomicExpression : LET Declaration IN . ExpressionPlus2 END  (81)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 158
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+	ExpressionPlus2  goto 187
+
+
+state 120
+	Declaration : ABSTYPE DatatypeB1R . WITH Declaration1 END DeclarationR  (17)
+	Declaration1 : ABSTYPE DatatypeB1R . WITH Declaration1 END DeclarationR  (24)
+
+	WITH  shift 188
+	.  error
+
+
+state 121
+	Declaration : DATATYPE DatatypeB1R . DeclarationR  (16)
+	Declaration1 : DATATYPE DatatypeB1R . DeclarationR  (23)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 189
+
+
+state 122
+	Declaration : FUN FunHeadingR . DeclarationR  (14)
+	Declaration1 : FUN FunHeadingR . DeclarationR  (21)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 190
+
+
+state 123
+	Declaration : LOCAL Declaration1 . IN Declaration1 END DeclarationR  (18)
+	Declaration1 : LOCAL Declaration1 . IN Declaration1 END DeclarationR  (25)
+
+	IN  shift 191
+	.  error
+
+
+state 124
+	Declaration : TYPE TypeBinding . DeclarationR  (15)
+	Declaration1 : TYPE TypeBinding . DeclarationR  (22)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 192
+
+
+state 125
+	Declaration : VAL REC . Pattern '=' Expression PatternExprR DeclarationR  (12)
+	Declaration1 : VAL REC . Pattern '=' Expression PatternExprR DeclarationR  (19)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 193
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 126
+	Declaration : VAL Pattern . '=' Expression PatternExprR DeclarationR  (13)
+	Declaration1 : VAL Pattern . '=' Expression PatternExprR DeclarationR  (20)
+
+	'='  shift 194
+	.  error
+
+
+state 127
+	ObjectDecl2 : LOCAL ObjectDecl IN . ObjectDecl END ObjectDeclR  (9)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 7
+	TYPE  shift 8
+	VAL  shift 9
+	.  error
+
+	ObjectDecl  goto 195
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+
+
+state 128
+	Declaration : LOCAL Declaration1 IN . Declaration1 END DeclarationR  (18)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	END  reduce 26
+
+	Declaration1  goto 196
+
+
+state 129
+	Declaration : TYPE TypeBinding DeclarationR .  (15)
+
+	.  reduce 15
+
+
+state 130
+	TypeBinding : TypeVarList Ident . '=' Type TypeBindingR  (43)
+
+	'='  shift 197
+	.  error
+
+
+state 131
+	Declaration : VAL REC Pattern . '=' Expression PatternExprR DeclarationR  (12)
+
+	'='  shift 198
+	.  error
+
+
+state 132
+	Declaration : VAL Pattern '=' . Expression PatternExprR DeclarationR  (13)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 199
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 133
+	PatternX : Name AS . Pattern  (96)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 200
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 134
+	PatternX : Name ':' . Type AS Pattern  (95)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 201
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 135
+	PatternY : PatternX INFIXOPERATOR . Pattern  (91)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 202
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 136
+	PatternY : PatternX ':' . Type  (92)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 203
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 137
+	PatternX : CompoundName AtomicPattern .  (94)
+
+	.  reduce 94
+
+
+state 138
+	ExpressionY : WHILE Expression DO . Expression  (64)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 204
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 139
+	ExpressionPlus1 : Expression ',' . ExpressionPlus1  (83)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 75
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+	ExpressionPlus1  goto 205
+
+
+state 140
+	AtomicExpression : '[' ExpressionPlus1 ']' .  (76)
+
+	.  reduce 76
+
+
+state 141
+	AtomicExpression : '{' LABEL '=' . Expression LabelExpressionR '}'  (78)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 206
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 142
+	programR : program .  (2)
+
+	.  reduce 2
+
+
+state 143
+	program : ToplevelDecl ';' programR .  (1)
+
+	.  reduce 1
+
+
+state 144
+	Expression : ExpressionY ANDALSO Expression .  (59)
+
+	.  reduce 59
+
+
+state 145
+	Expression : ExpressionY ORELSE Expression .  (60)
+
+	.  reduce 60
+
+
+state 146
+	TypeY : TYPEVAR .  (111)
+
+	.  reduce 111
+
+
+state 147
+	A : '(' . Type  (118)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 207
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 148
+	TypeY : '{' . LABEL ':' Type LabelTypeR '}'  (114)
+	TypeY : '{' . '}'  (115)
+
+	LABEL  shift 208
+	'}'  shift 209
+	.  error
+
+
+state 149
+	Expression : ExpressionY ':' Type .  (58)
+
+	.  reduce 58
+
+
+state 150
+	TypeY : CompoundIdent .  (112)
+
+	.  reduce 112
+
+
+state 151
+	Type : TypeX .  (106)
+
+	.  reduce 106
+
+
+152: shift/reduce conflict (shift 211, reduce 107) on '*'
+state 152
+	Type : TypeY .  (107)
+	TypeX : TypeY . CompoundIdent  (108)
+	TypeX : TypeY . '*' Type SubTypeR  (109)
+	TypeX : TypeY . "->" Type  (110)
+
+	"->"  shift 210
+	ALPHANUMERICIDENT  shift 37
+	'*'  shift 211
+	ABSTYPE  reduce 107
+	AND  reduce 107
+	ANDALSO  reduce 107
+	AS  reduce 107
+	DATATYPE  reduce 107
+	DO  reduce 107
+	ELSE  reduce 107
+	END  reduce 107
+	FUN  reduce 107
+	LOCAL  reduce 107
+	OF  reduce 107
+	ORELSE  reduce 107
+	THEN  reduce 107
+	TYPE  reduce 107
+	VAL  reduce 107
+	WITH  reduce 107
+	WITHTYPE  reduce 107
+	INFIXOPERATOR  reduce 107
+	';'  reduce 107
+	'='  reduce 107
+	':'  reduce 107
+	'|'  reduce 107
+	')'  reduce 107
+	','  reduce 107
+	']'  reduce 107
+	'}'  reduce 107
+
+	Ident  goto 109
+	CompoundIdent  goto 212
+	IdentPlus  goto 47
+
+
+state 153
+	TypeY : SubType . CompoundIdent  (113)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 109
+	CompoundIdent  goto 213
+	IdentPlus  goto 47
+
+
+state 154
+	TypeY : SingleType .  (116)
+
+	.  reduce 116
+
+
+state 155
+	SingleType : A . ')'  (117)
+	SubType : A . ',' Type SType ')'  (119)
+
+	')'  shift 214
+	','  shift 215
+	.  error
+
+
+state 156
+	InfixExpression : AtomicExpressionPlus INFIXOPERATOR InfixExpression .  (66)
+
+	.  reduce 66
+
+
+state 157
+	AtomicExpressionStar : AtomicExpression AtomicExpressionStar .  (69)
+
+	.  reduce 69
+
+
+state 158
+	ExpressionPlus2 : Expression . ';' ExpressionPlus2  (85)
+	ExpressionPlus2 : Expression .  (86)
+
+	';'  shift 216
+	END  reduce 86
+	')'  reduce 86
+
+
+state 159
+	AtomicExpression : E2 ';' ExpressionPlus2 . ')'  (74)
+
+	')'  shift 217
+	.  error
+
+
+state 160
+	AtomicExpression : E2 ',' ExpressionPlus1 . ')'  (75)
+
+	')'  shift 218
+	.  error
+
+
+state 161
+	TypeVarStar : ',' . TypeVarStar  (56)
+	TypeVarStar : .  (57)
+
+	','  shift 161
+	')'  reduce 57
+
+	TypeVarStar  goto 219
+
+
+state 162
+	TypeVarList : '(' TYPEVAR TypeVarStar . ')'  (54)
+
+	')'  shift 220
+	.  error
+
+
+state 163
+	Declaration : ABSTYPE DatatypeB1R WITH Declaration1 . END DeclarationR  (17)
+
+	END  shift 221
+	.  error
+
+
+state 164
+	DatatypeB1R : DatatypeBinding WITHTYPE TypeBinding .  (34)
+
+	.  reduce 34
+
+
+state 165
+	DatatypeBinding : TypeVarList Ident '=' . IdentOfType DatatypeBindingR  (46)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 222
+	IdentOfType  goto 223
+
+
+state 166
+	ExpressionY : CASE Expression OF Expression .  (65)
+
+	.  reduce 65
+
+
+state 167
+	DeclarationR : ';' Declaration .  (27)
+
+	.  reduce 27
+
+
+state 168
+	PatternR : ',' . Pattern PatternR  (104)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 224
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 169
+	Patterns : Pattern PatternR .  (102)
+
+	.  reduce 102
+
+
+state 170
+	FunHeading : '(' AtomicPattern INFIXOPERATOR . AtomicPattern ')' AtomicPatternStar  (39)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	AtomicPattern  goto 225
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 171
+	AtomicPattern : '(' Patterns ')' .  (100)
+
+	.  reduce 100
+
+
+state 172
+	AtomicPattern : '[' Patterns ']' .  (101)
+
+	.  reduce 101
+
+
+state 173
+	FunHeadingR : FunHeading '=' Expression . FunExprR  (30)
+	FunExprR : .  (33)
+
+	AND  shift 226
+	'|'  shift 227
+	ABSTYPE  reduce 33
+	DATATYPE  reduce 33
+	FUN  reduce 33
+	LOCAL  reduce 33
+	TYPE  reduce 33
+	VAL  reduce 33
+	';'  reduce 33
+
+	FunExprR  goto 228
+
+
+state 174
+	FunHeadingR : FunHeading ':' Type . '=' Expression FunExprR  (29)
+
+	'='  shift 229
+	.  error
+
+
+state 175
+	AtomicPatternStar : AtomicPattern . AtomicPatternStar  (41)
+	AtomicPatternStar : .  (42)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	'='  reduce 42
+	':'  reduce 42
+
+	AtomicPattern  goto 175
+	AtomicPatternStar  goto 230
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 176
+	FunHeading : Name AtomicPattern AtomicPatternStar .  (38)
+
+	.  reduce 38
+
+
+state 177
+	FunHeading : AtomicPattern INFIXOPERATOR AtomicPattern .  (40)
+
+	.  reduce 40
+
+
+state 178
+	IdentPlus : Ident '.' Ident . IdentStar  (133)
+	IdentStar : .  (135)
+
+	'.'  shift 231
+	ABSTYPE  reduce 135
+	AND  reduce 135
+	ANDALSO  reduce 135
+	AS  reduce 135
+	DATATYPE  reduce 135
+	DO  reduce 135
+	ELSE  reduce 135
+	END  reduce 135
+	FUN  reduce 135
+	LOCAL  reduce 135
+	OF  reduce 135
+	ORELSE  reduce 135
+	THEN  reduce 135
+	TYPE  reduce 135
+	VAL  reduce 135
+	WITH  reduce 135
+	WITHTYPE  reduce 135
+	CONSTANT  reduce 135
+	"->"  reduce 135
+	INFIXOPERATOR  reduce 135
+	ALPHANUMERICIDENT  reduce 135
+	';'  reduce 135
+	'='  reduce 135
+	':'  reduce 135
+	'|'  reduce 135
+	'('  reduce 135
+	')'  reduce 135
+	','  reduce 135
+	'['  reduce 135
+	']'  reduce 135
+	'}'  reduce 135
+	'_'  reduce 135
+	'*'  reduce 135
+
+	IdentStar  goto 232
+
+
+state 179
+	ExpressionY : IF Expression THEN Expression . ELSE Expression  (63)
+
+	ELSE  shift 233
+	.  error
+
+
+state 180
+	Declaration1 : ABSTYPE DatatypeB1R . WITH Declaration1 END DeclarationR  (24)
+
+	WITH  shift 234
+	.  error
+
+
+state 181
+	Declaration1 : DATATYPE DatatypeB1R . DeclarationR  (23)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 235
+
+
+state 182
+	Declaration1 : FUN FunHeadingR . DeclarationR  (21)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 236
+
+
+state 183
+	Declaration1 : LOCAL Declaration1 . IN Declaration1 END DeclarationR  (25)
+
+	IN  shift 237
+	.  error
+
+
+state 184
+	Declaration1 : TYPE TypeBinding . DeclarationR  (22)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 238
+
+
+state 185
+	Declaration1 : VAL REC . Pattern '=' Expression PatternExprR DeclarationR  (19)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 239
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 186
+	Declaration1 : VAL Pattern . '=' Expression PatternExprR DeclarationR  (20)
+
+	'='  shift 240
+	.  error
+
+
+state 187
+	AtomicExpression : LET Declaration IN ExpressionPlus2 . END  (81)
+
+	END  shift 241
+	.  error
+
+
+state 188
+	Declaration : ABSTYPE DatatypeB1R WITH . Declaration1 END DeclarationR  (17)
+	Declaration1 : ABSTYPE DatatypeB1R WITH . Declaration1 END DeclarationR  (24)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	END  reduce 26
+
+	Declaration1  goto 242
+
+
+state 189
+	Declaration : DATATYPE DatatypeB1R DeclarationR .  (16)
+	Declaration1 : DATATYPE DatatypeB1R DeclarationR .  (23)
+
+	IN  reduce 23
+	LOCAL  reduce 16
+
+
+state 190
+	Declaration : FUN FunHeadingR DeclarationR .  (14)
+	Declaration1 : FUN FunHeadingR DeclarationR .  (21)
+
+	IN  reduce 21
+	LOCAL  reduce 14
+
+
+state 191
+	Declaration : LOCAL Declaration1 IN . Declaration1 END DeclarationR  (18)
+	Declaration1 : LOCAL Declaration1 IN . Declaration1 END DeclarationR  (25)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	END  reduce 26
+
+	Declaration1  goto 243
+
+
+state 192
+	Declaration : TYPE TypeBinding DeclarationR .  (15)
+	Declaration1 : TYPE TypeBinding DeclarationR .  (22)
+
+	IN  reduce 22
+	LOCAL  reduce 15
+
+
+state 193
+	Declaration : VAL REC Pattern . '=' Expression PatternExprR DeclarationR  (12)
+	Declaration1 : VAL REC Pattern . '=' Expression PatternExprR DeclarationR  (19)
+
+	'='  shift 244
+	.  error
+
+
+state 194
+	Declaration : VAL Pattern '=' . Expression PatternExprR DeclarationR  (13)
+	Declaration1 : VAL Pattern '=' . Expression PatternExprR DeclarationR  (20)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 245
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 195
+	ObjectDecl2 : LOCAL ObjectDecl IN ObjectDecl . END ObjectDeclR  (9)
+
+	END  shift 246
+	.  error
+
+
+state 196
+	Declaration : LOCAL Declaration1 IN Declaration1 . END DeclarationR  (18)
+
+	END  shift 247
+	.  error
+
+
+state 197
+	TypeBinding : TypeVarList Ident '=' . Type TypeBindingR  (43)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 248
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 198
+	Declaration : VAL REC Pattern '=' . Expression PatternExprR DeclarationR  (12)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 249
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 199
+	Declaration : VAL Pattern '=' Expression . PatternExprR DeclarationR  (13)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 251
+
+
+state 200
+	PatternX : Name AS Pattern .  (96)
+
+	.  reduce 96
+
+
+state 201
+	PatternX : Name ':' Type . AS Pattern  (95)
+
+	AS  shift 252
+	.  error
+
+
+state 202
+	PatternY : PatternX INFIXOPERATOR Pattern .  (91)
+
+	.  reduce 91
+
+
+state 203
+	PatternY : PatternX ':' Type .  (92)
+
+	.  reduce 92
+
+
+state 204
+	ExpressionY : WHILE Expression DO Expression .  (64)
+
+	.  reduce 64
+
+
+state 205
+	ExpressionPlus1 : Expression ',' ExpressionPlus1 .  (83)
+
+	.  reduce 83
+
+
+state 206
+	AtomicExpression : '{' LABEL '=' Expression . LabelExpressionR '}'  (78)
+	LabelExpressionR : .  (88)
+
+	','  shift 253
+	'}'  reduce 88
+
+	LabelExpressionR  goto 254
+
+
+state 207
+	A : '(' Type .  (118)
+
+	.  reduce 118
+
+
+state 208
+	TypeY : '{' LABEL . ':' Type LabelTypeR '}'  (114)
+
+	':'  shift 255
+	.  error
+
+
+state 209
+	TypeY : '{' '}' .  (115)
+
+	.  reduce 115
+
+
+state 210
+	TypeX : TypeY "->" . Type  (110)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 256
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 211
+	TypeX : TypeY '*' . Type SubTypeR  (109)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 257
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 212
+	TypeX : TypeY CompoundIdent .  (108)
+
+	.  reduce 108
+
+
+state 213
+	TypeY : SubType CompoundIdent .  (113)
+
+	.  reduce 113
+
+
+state 214
+	SingleType : A ')' .  (117)
+
+	.  reduce 117
+
+
+state 215
+	SubType : A ',' . Type SType ')'  (119)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 258
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 216
+	ExpressionPlus2 : Expression ';' . ExpressionPlus2  (85)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 158
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+	ExpressionPlus2  goto 259
+
+
+state 217
+	AtomicExpression : E2 ';' ExpressionPlus2 ')' .  (74)
+
+	.  reduce 74
+
+
+state 218
+	AtomicExpression : E2 ',' ExpressionPlus1 ')' .  (75)
+
+	.  reduce 75
+
+
+state 219
+	TypeVarStar : ',' TypeVarStar .  (56)
+
+	.  reduce 56
+
+
+state 220
+	TypeVarList : '(' TYPEVAR TypeVarStar ')' .  (54)
+
+	.  reduce 54
+
+
+state 221
+	Declaration : ABSTYPE DatatypeB1R WITH Declaration1 END . DeclarationR  (17)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 260
+
+
+state 222
+	IdentOfType : Ident . OF Type IdentOfTypeR  (49)
+	IdentOfType : Ident . IdentOfTypeR  (50)
+	IdentOfTypeR : .  (52)
+
+	OF  shift 261
+	'|'  shift 262
+	ABSTYPE  reduce 52
+	AND  reduce 52
+	DATATYPE  reduce 52
+	FUN  reduce 52
+	LOCAL  reduce 52
+	TYPE  reduce 52
+	VAL  reduce 52
+	WITH  reduce 52
+	WITHTYPE  reduce 52
+	';'  reduce 52
+
+	IdentOfTypeR  goto 263
+
+
+state 223
+	DatatypeBinding : TypeVarList Ident '=' IdentOfType . DatatypeBindingR  (46)
+	DatatypeBindingR : .  (48)
+
+	AND  shift 264
+	ABSTYPE  reduce 48
+	DATATYPE  reduce 48
+	FUN  reduce 48
+	LOCAL  reduce 48
+	TYPE  reduce 48
+	VAL  reduce 48
+	WITH  reduce 48
+	WITHTYPE  reduce 48
+	';'  reduce 48
+
+	DatatypeBindingR  goto 265
+
+
+state 224
+	PatternR : ',' Pattern . PatternR  (104)
+	PatternR : .  (105)
+
+	','  shift 168
+	')'  reduce 105
+	']'  reduce 105
+
+	PatternR  goto 266
+
+
+state 225
+	FunHeading : '(' AtomicPattern INFIXOPERATOR AtomicPattern . ')' AtomicPatternStar  (39)
+
+	')'  shift 267
+	.  error
+
+
+state 226
+	FunExprR : AND . FunHeadingR  (32)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 38
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	FunHeadingR  goto 268
+	FunHeading  goto 42
+	Name  goto 43
+	AtomicPattern  goto 44
+	Ident  goto 45
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 227
+	FunExprR : '|' . FunHeadingR  (31)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 38
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	FunHeadingR  goto 269
+	FunHeading  goto 42
+	Name  goto 43
+	AtomicPattern  goto 44
+	Ident  goto 45
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 228
+	FunHeadingR : FunHeading '=' Expression FunExprR .  (30)
+
+	.  reduce 30
+
+
+state 229
+	FunHeadingR : FunHeading ':' Type '=' . Expression FunExprR  (29)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 270
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 230
+	AtomicPatternStar : AtomicPattern AtomicPatternStar .  (41)
+
+	.  reduce 41
+
+
+state 231
+	IdentStar : '.' . Ident IdentStar  (134)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 271
+
+
+state 232
+	IdentPlus : Ident '.' Ident IdentStar .  (133)
+
+	.  reduce 133
+
+
+state 233
+	ExpressionY : IF Expression THEN Expression ELSE . Expression  (63)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 272
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 234
+	Declaration1 : ABSTYPE DatatypeB1R WITH . Declaration1 END DeclarationR  (24)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	END  reduce 26
+
+	Declaration1  goto 273
+
+
+state 235
+	Declaration1 : DATATYPE DatatypeB1R DeclarationR .  (23)
+
+	.  reduce 23
+
+
+state 236
+	Declaration1 : FUN FunHeadingR DeclarationR .  (21)
+
+	.  reduce 21
+
+
+state 237
+	Declaration1 : LOCAL Declaration1 IN . Declaration1 END DeclarationR  (25)
+	Declaration1 : .  (26)
+
+	ABSTYPE  shift 113
+	DATATYPE  shift 114
+	FUN  shift 115
+	LOCAL  shift 116
+	TYPE  shift 117
+	VAL  shift 118
+	END  reduce 26
+
+	Declaration1  goto 274
+
+
+state 238
+	Declaration1 : TYPE TypeBinding DeclarationR .  (22)
+
+	.  reduce 22
+
+
+state 239
+	Declaration1 : VAL REC Pattern . '=' Expression PatternExprR DeclarationR  (19)
+
+	'='  shift 275
+	.  error
+
+
+state 240
+	Declaration1 : VAL Pattern '=' . Expression PatternExprR DeclarationR  (20)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 276
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 241
+	AtomicExpression : LET Declaration IN ExpressionPlus2 END .  (81)
+
+	.  reduce 81
+
+
+state 242
+	Declaration : ABSTYPE DatatypeB1R WITH Declaration1 . END DeclarationR  (17)
+	Declaration1 : ABSTYPE DatatypeB1R WITH Declaration1 . END DeclarationR  (24)
+
+	END  shift 277
+	.  error
+
+
+state 243
+	Declaration : LOCAL Declaration1 IN Declaration1 . END DeclarationR  (18)
+	Declaration1 : LOCAL Declaration1 IN Declaration1 . END DeclarationR  (25)
+
+	END  shift 278
+	.  error
+
+
+state 244
+	Declaration : VAL REC Pattern '=' . Expression PatternExprR DeclarationR  (12)
+	Declaration1 : VAL REC Pattern '=' . Expression PatternExprR DeclarationR  (19)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 279
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 245
+	Declaration : VAL Pattern '=' Expression . PatternExprR DeclarationR  (13)
+	Declaration1 : VAL Pattern '=' Expression . PatternExprR DeclarationR  (20)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 280
+
+
+state 246
+	ObjectDecl2 : LOCAL ObjectDecl IN ObjectDecl END . ObjectDeclR  (9)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 7
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 281
+	.  error
+
+	ObjectDecl  goto 282
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+	ObjectDeclR  goto 283
+
+
+state 247
+	Declaration : LOCAL Declaration1 IN Declaration1 END . DeclarationR  (18)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 284
+
+
+state 248
+	TypeBinding : TypeVarList Ident '=' Type . TypeBindingR  (43)
+	TypeBindingR : .  (45)
+
+	AND  shift 285
+	ABSTYPE  reduce 45
+	DATATYPE  reduce 45
+	FUN  reduce 45
+	LOCAL  reduce 45
+	TYPE  reduce 45
+	VAL  reduce 45
+	WITH  reduce 45
+	';'  reduce 45
+
+	TypeBindingR  goto 286
+
+
+state 249
+	Declaration : VAL REC Pattern '=' Expression . PatternExprR DeclarationR  (12)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 287
+
+
+state 250
+	PatternExprR : AND . VAL REC Pattern '=' Expression PatternExprR  (36)
+
+	VAL  shift 288
+	.  error
+
+
+state 251
+	Declaration : VAL Pattern '=' Expression PatternExprR . DeclarationR  (13)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 289
+
+
+state 252
+	PatternX : Name ':' Type AS . Pattern  (95)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 290
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 253
+	LabelExpressionR : ',' . LABEL '=' Expression LabelExpressionR  (87)
+
+	LABEL  shift 291
+	.  error
+
+
+state 254
+	AtomicExpression : '{' LABEL '=' Expression LabelExpressionR . '}'  (78)
+
+	'}'  shift 292
+	.  error
+
+
+state 255
+	TypeY : '{' LABEL ':' . Type LabelTypeR '}'  (114)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 293
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 256
+	TypeX : TypeY "->" Type .  (110)
+
+	.  reduce 110
+
+
+257: shift/reduce conflict (shift 294, reduce 121) on '*'
+state 257
+	TypeX : TypeY '*' Type . SubTypeR  (109)
+	SubTypeR : .  (121)
+
+	'*'  shift 294
+	ABSTYPE  reduce 121
+	AND  reduce 121
+	ANDALSO  reduce 121
+	AS  reduce 121
+	DATATYPE  reduce 121
+	DO  reduce 121
+	ELSE  reduce 121
+	END  reduce 121
+	FUN  reduce 121
+	LOCAL  reduce 121
+	OF  reduce 121
+	ORELSE  reduce 121
+	THEN  reduce 121
+	TYPE  reduce 121
+	VAL  reduce 121
+	WITH  reduce 121
+	WITHTYPE  reduce 121
+	INFIXOPERATOR  reduce 121
+	';'  reduce 121
+	'='  reduce 121
+	':'  reduce 121
+	'|'  reduce 121
+	')'  reduce 121
+	','  reduce 121
+	']'  reduce 121
+	'}'  reduce 121
+
+	SubTypeR  goto 295
+
+
+state 258
+	SubType : A ',' Type . SType ')'  (119)
+	SType : .  (123)
+
+	','  shift 296
+	')'  reduce 123
+
+	SType  goto 297
+
+
+state 259
+	ExpressionPlus2 : Expression ';' ExpressionPlus2 .  (85)
+
+	.  reduce 85
+
+
+state 260
+	Declaration : ABSTYPE DatatypeB1R WITH Declaration1 END DeclarationR .  (17)
+
+	.  reduce 17
+
+
+state 261
+	IdentOfType : Ident OF . Type IdentOfTypeR  (49)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 298
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 262
+	IdentOfTypeR : '|' . IdentOfType  (51)
+
+	ALPHANUMERICIDENT  shift 37
+	.  error
+
+	Ident  goto 222
+	IdentOfType  goto 299
+
+
+state 263
+	IdentOfType : Ident IdentOfTypeR .  (50)
+
+	.  reduce 50
+
+
+state 264
+	DatatypeBindingR : AND . DatatypeBinding  (47)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	DatatypeBinding  goto 300
+	TypeVarList  goto 32
+
+
+state 265
+	DatatypeBinding : TypeVarList Ident '=' IdentOfType DatatypeBindingR .  (46)
+
+	.  reduce 46
+
+
+state 266
+	PatternR : ',' Pattern PatternR .  (104)
+
+	.  reduce 104
+
+
+state 267
+	FunHeading : '(' AtomicPattern INFIXOPERATOR AtomicPattern ')' . AtomicPatternStar  (39)
+	AtomicPatternStar : .  (42)
+
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	'='  reduce 42
+	':'  reduce 42
+
+	AtomicPattern  goto 175
+	AtomicPatternStar  goto 301
+	Ident  goto 109
+	CompoundIdent  goto 46
+	IdentPlus  goto 47
+
+
+state 268
+	FunExprR : AND FunHeadingR .  (32)
+
+	.  reduce 32
+
+
+state 269
+	FunExprR : '|' FunHeadingR .  (31)
+
+	.  reduce 31
+
+
+state 270
+	FunHeadingR : FunHeading ':' Type '=' Expression . FunExprR  (29)
+	FunExprR : .  (33)
+
+	AND  shift 226
+	'|'  shift 227
+	ABSTYPE  reduce 33
+	DATATYPE  reduce 33
+	FUN  reduce 33
+	LOCAL  reduce 33
+	TYPE  reduce 33
+	VAL  reduce 33
+	';'  reduce 33
+
+	FunExprR  goto 302
+
+
+state 271
+	IdentStar : '.' Ident . IdentStar  (134)
+	IdentStar : .  (135)
+
+	'.'  shift 231
+	ABSTYPE  reduce 135
+	AND  reduce 135
+	ANDALSO  reduce 135
+	AS  reduce 135
+	DATATYPE  reduce 135
+	DO  reduce 135
+	ELSE  reduce 135
+	END  reduce 135
+	FUN  reduce 135
+	LOCAL  reduce 135
+	OF  reduce 135
+	ORELSE  reduce 135
+	THEN  reduce 135
+	TYPE  reduce 135
+	VAL  reduce 135
+	WITH  reduce 135
+	WITHTYPE  reduce 135
+	CONSTANT  reduce 135
+	"->"  reduce 135
+	INFIXOPERATOR  reduce 135
+	ALPHANUMERICIDENT  reduce 135
+	';'  reduce 135
+	'='  reduce 135
+	':'  reduce 135
+	'|'  reduce 135
+	'('  reduce 135
+	')'  reduce 135
+	','  reduce 135
+	'['  reduce 135
+	']'  reduce 135
+	'}'  reduce 135
+	'_'  reduce 135
+	'*'  reduce 135
+
+	IdentStar  goto 303
+
+
+state 272
+	ExpressionY : IF Expression THEN Expression ELSE Expression .  (63)
+
+	.  reduce 63
+
+
+state 273
+	Declaration1 : ABSTYPE DatatypeB1R WITH Declaration1 . END DeclarationR  (24)
+
+	END  shift 304
+	.  error
+
+
+state 274
+	Declaration1 : LOCAL Declaration1 IN Declaration1 . END DeclarationR  (25)
+
+	END  shift 305
+	.  error
+
+
+state 275
+	Declaration1 : VAL REC Pattern '=' . Expression PatternExprR DeclarationR  (19)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 306
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 276
+	Declaration1 : VAL Pattern '=' Expression . PatternExprR DeclarationR  (20)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 307
+
+
+state 277
+	Declaration : ABSTYPE DatatypeB1R WITH Declaration1 END . DeclarationR  (17)
+	Declaration1 : ABSTYPE DatatypeB1R WITH Declaration1 END . DeclarationR  (24)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 308
+
+
+state 278
+	Declaration : LOCAL Declaration1 IN Declaration1 END . DeclarationR  (18)
+	Declaration1 : LOCAL Declaration1 IN Declaration1 END . DeclarationR  (25)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 309
+
+
+state 279
+	Declaration : VAL REC Pattern '=' Expression . PatternExprR DeclarationR  (12)
+	Declaration1 : VAL REC Pattern '=' Expression . PatternExprR DeclarationR  (19)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 310
+
+
+state 280
+	Declaration : VAL Pattern '=' Expression PatternExprR . DeclarationR  (13)
+	Declaration1 : VAL Pattern '=' Expression PatternExprR . DeclarationR  (20)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 311
+
+
+state 281
+	ObjectDeclR : ';' . ObjectDecl  (10)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 7
+	TYPE  shift 8
+	VAL  shift 9
+	.  error
+
+	ObjectDecl  goto 312
+	ObjectDecl1  goto 20
+	ObjectDecl2  goto 21
+	Declaration  goto 22
+
+
+state 282
+	ObjectDeclR : ObjectDecl .  (11)
+
+	.  reduce 11
+
+
+state 283
+	ObjectDecl2 : LOCAL ObjectDecl IN ObjectDecl END ObjectDeclR .  (9)
+
+	.  reduce 9
+
+
+state 284
+	Declaration : LOCAL Declaration1 IN Declaration1 END DeclarationR .  (18)
+
+	.  reduce 18
+
+
+state 285
+	TypeBindingR : AND . TypeBinding  (44)
+	TypeVarList : .  (55)
+
+	TYPEVAR  shift 28
+	'('  shift 29
+	ALPHANUMERICIDENT  reduce 55
+
+	TypeBinding  goto 313
+	TypeVarList  goto 60
+
+
+state 286
+	TypeBinding : TypeVarList Ident '=' Type TypeBindingR .  (43)
+
+	.  reduce 43
+
+
+state 287
+	Declaration : VAL REC Pattern '=' Expression PatternExprR . DeclarationR  (12)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 314
+
+
+state 288
+	PatternExprR : AND VAL . REC Pattern '=' Expression PatternExprR  (36)
+
+	REC  shift 315
+	.  error
+
+
+state 289
+	Declaration : VAL Pattern '=' Expression PatternExprR DeclarationR .  (13)
+
+	.  reduce 13
+
+
+state 290
+	PatternX : Name ':' Type AS Pattern .  (95)
+
+	.  reduce 95
+
+
+state 291
+	LabelExpressionR : ',' LABEL . '=' Expression LabelExpressionR  (87)
+
+	'='  shift 316
+	.  error
+
+
+state 292
+	AtomicExpression : '{' LABEL '=' Expression LabelExpressionR '}' .  (78)
+
+	.  reduce 78
+
+
+state 293
+	TypeY : '{' LABEL ':' Type . LabelTypeR '}'  (114)
+	LabelTypeR : .  (125)
+
+	','  shift 317
+	'}'  reduce 125
+
+	LabelTypeR  goto 318
+
+
+state 294
+	SubTypeR : '*' . Type  (120)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 319
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 295
+	TypeX : TypeY '*' Type SubTypeR .  (109)
+
+	.  reduce 109
+
+
+state 296
+	SType : ',' . Type SType  (122)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 320
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 297
+	SubType : A ',' Type SType . ')'  (119)
+
+	')'  shift 321
+	.  error
+
+
+state 298
+	IdentOfType : Ident OF Type . IdentOfTypeR  (49)
+	IdentOfTypeR : .  (52)
+
+	'|'  shift 262
+	ABSTYPE  reduce 52
+	AND  reduce 52
+	DATATYPE  reduce 52
+	FUN  reduce 52
+	LOCAL  reduce 52
+	TYPE  reduce 52
+	VAL  reduce 52
+	WITH  reduce 52
+	WITHTYPE  reduce 52
+	';'  reduce 52
+
+	IdentOfTypeR  goto 322
+
+
+state 299
+	IdentOfTypeR : '|' IdentOfType .  (51)
+
+	.  reduce 51
+
+
+state 300
+	DatatypeBindingR : AND DatatypeBinding .  (47)
+
+	.  reduce 47
+
+
+state 301
+	FunHeading : '(' AtomicPattern INFIXOPERATOR AtomicPattern ')' AtomicPatternStar .  (39)
+
+	.  reduce 39
+
+
+state 302
+	FunHeadingR : FunHeading ':' Type '=' Expression FunExprR .  (29)
+
+	.  reduce 29
+
+
+state 303
+	IdentStar : '.' Ident IdentStar .  (134)
+
+	.  reduce 134
+
+
+state 304
+	Declaration1 : ABSTYPE DatatypeB1R WITH Declaration1 END . DeclarationR  (24)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 323
+
+
+state 305
+	Declaration1 : LOCAL Declaration1 IN Declaration1 END . DeclarationR  (25)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 324
+
+
+state 306
+	Declaration1 : VAL REC Pattern '=' Expression . PatternExprR DeclarationR  (19)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 325
+
+
+state 307
+	Declaration1 : VAL Pattern '=' Expression PatternExprR . DeclarationR  (20)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 326
+
+
+state 308
+	Declaration : ABSTYPE DatatypeB1R WITH Declaration1 END DeclarationR .  (17)
+	Declaration1 : ABSTYPE DatatypeB1R WITH Declaration1 END DeclarationR .  (24)
+
+	IN  reduce 24
+	LOCAL  reduce 17
+
+
+state 309
+	Declaration : LOCAL Declaration1 IN Declaration1 END DeclarationR .  (18)
+	Declaration1 : LOCAL Declaration1 IN Declaration1 END DeclarationR .  (25)
+
+	IN  reduce 25
+	LOCAL  reduce 18
+
+
+state 310
+	Declaration : VAL REC Pattern '=' Expression PatternExprR . DeclarationR  (12)
+	Declaration1 : VAL REC Pattern '=' Expression PatternExprR . DeclarationR  (19)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 327
+
+
+state 311
+	Declaration : VAL Pattern '=' Expression PatternExprR DeclarationR .  (13)
+	Declaration1 : VAL Pattern '=' Expression PatternExprR DeclarationR .  (20)
+
+	IN  reduce 20
+	LOCAL  reduce 13
+
+
+state 312
+	ObjectDeclR : ';' ObjectDecl .  (10)
+
+	.  reduce 10
+
+
+state 313
+	TypeBindingR : AND TypeBinding .  (44)
+
+	.  reduce 44
+
+
+state 314
+	Declaration : VAL REC Pattern '=' Expression PatternExprR DeclarationR .  (12)
+
+	.  reduce 12
+
+
+state 315
+	PatternExprR : AND VAL REC . Pattern '=' Expression PatternExprR  (36)
+
+	OP  shift 35
+	CONSTANT  shift 36
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 62
+	'['  shift 39
+	'_'  shift 40
+	.  error
+
+	Pattern  goto 328
+	Name  goto 64
+	AtomicPattern  goto 65
+	Ident  goto 66
+	PatternX  goto 67
+	PatternY  goto 68
+	CompoundName  goto 69
+	CompoundIdent  goto 46
+	IdentPlus  goto 70
+
+
+state 316
+	LabelExpressionR : ',' LABEL '=' . Expression LabelExpressionR  (87)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 329
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 317
+	LabelTypeR : ',' . LABEL ':' Type LabelTypeR  (124)
+
+	LABEL  shift 330
+	.  error
+
+
+state 318
+	TypeY : '{' LABEL ':' Type LabelTypeR . '}'  (114)
+
+	'}'  shift 331
+	.  error
+
+
+state 319
+	SubTypeR : '*' Type .  (120)
+
+	.  reduce 120
+
+
+state 320
+	SType : ',' Type . SType  (122)
+	SType : .  (123)
+
+	','  shift 296
+	')'  reduce 123
+
+	SType  goto 332
+
+
+state 321
+	SubType : A ',' Type SType ')' .  (119)
+
+	.  reduce 119
+
+
+state 322
+	IdentOfType : Ident OF Type IdentOfTypeR .  (49)
+
+	.  reduce 49
+
+
+state 323
+	Declaration1 : ABSTYPE DatatypeB1R WITH Declaration1 END DeclarationR .  (24)
+
+	.  reduce 24
+
+
+state 324
+	Declaration1 : LOCAL Declaration1 IN Declaration1 END DeclarationR .  (25)
+
+	.  reduce 25
+
+
+state 325
+	Declaration1 : VAL REC Pattern '=' Expression PatternExprR . DeclarationR  (19)
+
+	ABSTYPE  shift 1
+	DATATYPE  shift 3
+	FUN  shift 4
+	LOCAL  shift 49
+	TYPE  shift 8
+	VAL  shift 9
+	';'  shift 97
+	.  error
+
+	Declaration  goto 98
+	DeclarationR  goto 333
+
+
+state 326
+	Declaration1 : VAL Pattern '=' Expression PatternExprR DeclarationR .  (20)
+
+	.  reduce 20
+
+
+state 327
+	Declaration : VAL REC Pattern '=' Expression PatternExprR DeclarationR .  (12)
+	Declaration1 : VAL REC Pattern '=' Expression PatternExprR DeclarationR .  (19)
+
+	IN  reduce 19
+	LOCAL  reduce 12
+
+
+state 328
+	PatternExprR : AND VAL REC Pattern . '=' Expression PatternExprR  (36)
+
+	'='  shift 334
+	.  error
+
+
+state 329
+	LabelExpressionR : ',' LABEL '=' Expression . LabelExpressionR  (87)
+	LabelExpressionR : .  (88)
+
+	','  shift 253
+	'}'  reduce 88
+
+	LabelExpressionR  goto 335
+
+
+state 330
+	LabelTypeR : ',' LABEL . ':' Type LabelTypeR  (124)
+
+	':'  shift 336
+	.  error
+
+
+state 331
+	TypeY : '{' LABEL ':' Type LabelTypeR '}' .  (114)
+
+	.  reduce 114
+
+
+state 332
+	SType : ',' Type SType .  (122)
+
+	.  reduce 122
+
+
+state 333
+	Declaration1 : VAL REC Pattern '=' Expression PatternExprR DeclarationR .  (19)
+
+	.  reduce 19
+
+
+state 334
+	PatternExprR : AND VAL REC Pattern '=' . Expression PatternExprR  (36)
+
+	CASE  shift 2
+	IF  shift 5
+	LET  shift 6
+	WHILE  shift 10
+	CONSTANT  shift 11
+	'('  shift 12
+	'['  shift 13
+	'{'  shift 14
+	'#'  shift 15
+	.  error
+
+	Expression  goto 337
+	ExpressionY  goto 23
+	InfixExpression  goto 24
+	AtomicExpressionPlus  goto 25
+	AtomicExpression  goto 26
+	E2  goto 27
+
+
+state 335
+	LabelExpressionR : ',' LABEL '=' Expression LabelExpressionR .  (87)
+
+	.  reduce 87
+
+
+state 336
+	LabelTypeR : ',' LABEL ':' . Type LabelTypeR  (124)
+
+	TYPEVAR  shift 146
+	ALPHANUMERICIDENT  shift 37
+	'('  shift 147
+	'{'  shift 148
+	.  error
+
+	Type  goto 338
+	Ident  goto 109
+	CompoundIdent  goto 150
+	TypeX  goto 151
+	TypeY  goto 152
+	SubType  goto 153
+	SingleType  goto 154
+	A  goto 155
+	IdentPlus  goto 47
+
+
+state 337
+	PatternExprR : AND VAL REC Pattern '=' Expression . PatternExprR  (36)
+	PatternExprR : .  (37)
+
+	AND  shift 250
+	ABSTYPE  reduce 37
+	DATATYPE  reduce 37
+	FUN  reduce 37
+	LOCAL  reduce 37
+	TYPE  reduce 37
+	VAL  reduce 37
+	';'  reduce 37
+
+	PatternExprR  goto 339
+
+
+state 338
+	LabelTypeR : ',' LABEL ':' Type . LabelTypeR  (124)
+	LabelTypeR : .  (125)
+
+	','  shift 317
+	'}'  reduce 125
+
+	LabelTypeR  goto 340
+
+
+state 339
+	PatternExprR : AND VAL REC Pattern '=' Expression PatternExprR .  (36)
+
+	.  reduce 36
+
+
+state 340
+	LabelTypeR : ',' LABEL ':' Type LabelTypeR .  (124)
+
+	.  reduce 124
+
+
+State 23 contains 3 shift/reduce conflicts.
+State 66 contains 6 reduce/reduce conflicts.
+State 67 contains 2 shift/reduce conflicts.
+State 102 contains 1 shift/reduce conflict.
+State 152 contains 1 shift/reduce conflict.
+State 257 contains 1 shift/reduce conflict.
+
+
+81 terminals, 56 nonterminals
+137 grammar rules, 341 states
